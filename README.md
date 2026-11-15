@@ -35,3 +35,5 @@ include BSD-3-Clause and MIT terms. Fixtures are synthetic, not user data.
 No measured token savings, OCR accuracy or model task-success claims are made.
 
 The initial release exports WebMux's snapcompact package as a standalone module.
+
+[API and limits](API.md) · [Official compatibility suite](COMPATIBILITY.md)
