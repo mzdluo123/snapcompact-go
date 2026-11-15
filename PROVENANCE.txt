@@ -1,3 +1,3 @@
-Initial standalone export of WebMux snapcompact/ at de5ea52b5b18ad058368f29c899da4f373db0e29
+Initial standalone export of WebMux snapcompact/ at 9662327fe3be0d1577d6d85a9194f072861d431f
 https://github.com/mzdluo123/webmux/pull/641
 Core Go sources, fixtures and fonts are identical; module path and standalone documentation differ.
