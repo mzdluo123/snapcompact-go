@@ -43,7 +43,7 @@ README 说明渲染流水线参考 MIT 上游、BDF 字体来自上游；这不�
 上游 Silver.LICENSE 明确 Silver 字体采用 CC BY 4.0，由 Poppy Works / Wolfgang Wozniak 发布。
 主要贡献者为 Itou Hiro（PixelMPlus）、leedheo（DOSGothic）、ぶち（Buchidot）。
 分发 Silver 时须保留作者、许可链接、来源与改动说明；不能把 MIT 代码许可当作字体许可。
-Go 核心没有分发 Silver；实际采用 Noto Sans CJK SC（SIL OFL 1.1），其声明随包分发，见 [字体声明](fonts/NOTICE.txt)。
+Go 核心分发 public-domain 8x13 与 Noto Sans CJK SC（SIL OFL 1.1），不分发 Silver；声明随包分发，见 [字体声明](fonts/NOTICE.txt) 和 [哈希来源](PROVENANCE.txt)。
 渲染依赖固定为 x/image v0.48.0、x/text v0.44.0（BSD-3-Clause）及 uniseg v0.4.7（MIT）。
 完整依赖声明见 [第三方许可](THIRD_PARTY_NOTICES.txt)。
 字体覆盖范围不能证明复杂文字 shaping 或所有 emoji 支持；缺字结果必须由调用方检查。
@@ -65,7 +65,7 @@ UTF-16 代理对、结构保留、来源映射及缺字处理采用 Go 核心明
 - 上游默认参数值上限 500、工具结果及整次调用上限 2000，首部比例 60%；这些数值只是实验起点。
 - 上游截断按 JavaScript UTF-16 长度，Go 使用 Unicode scalar 计量，并返回机器可读来源范围。
 - 上游把换行折为 FULL BLOCK 标记、折叠符号并删除部分 emoji；Go 保留显式结构并显式报告无法渲染内容。
-- 上游可合并相邻角色、工具调用及结果；Go 保留独立来源边界和原有顺序。
-- 上游内置模型几何、token 费率和归档筛选；Go 通过注入规划，能力未知时明确返回未知。
+- 新 `ArchiveRenderer` 合并角色展示、配对工具身份，并保留独立来源分区和输入顺序；原 `Renderer` 行为不变。
+- 新归档接口实现固定参考模型几何、catalog 估算、文字边缘和 HQ/LQ/HQ 筛选；不声称完整 catalog 解析等价，未知 lineage 明确标记。
 - 本地测试只验证机械投影、PNG、资源上限和预算结果；未测实际模型链路、OCR、token 节省比例或任务成功率。
 - 没有调用付费模型。后续交接服务须验证实际图片传输、目标模型和网关能力，才能启用图片投递。

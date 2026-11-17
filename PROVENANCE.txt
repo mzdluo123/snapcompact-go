@@ -1,3 +1,21 @@
 Initial standalone export of WebMux snapcompact/ at 9662327fe3be0d1577d6d85a9194f072861d431f
 https://github.com/mzdluo123/webmux/pull/641
-Core Go sources, fixtures and fonts are identical; module path and standalone documentation differ.
+Initial export preserved core Go sources, fixtures and fonts; subsequent archive changes are listed below.
+
+Archive planner and geometry reference:
+can1357/oh-my-pi@7c49c11aa5bbaf3f418406583096168ad5b8c6dc
+packages/snapcompact/src/snapcompact.ts (planArchive, shape resolution)
+packages/catalog/src/compat/rules/classes/openai.kdl
+packages/catalog/src/compat/rules/classes/anthropic.kdl
+packages/catalog/src/compat/rules/classes/gemini.kdl
+packages/catalog/src/compat/rules/providers/image-tokenization.kdl
+packages/catalog/src/compat/image-tokenization.ts
+Independent Go implementation, not a claim of pixel equivalence or measured savings.
+
+8x13 asset imported from local oh-my-pi/crates/pi-natives/src/fonts/8x13.bdf.
+Local asset checkout revision was not established as the reference commit.
+SHA256 c39b53bd625f35e6681d5097d81e6bf81b44a9f6730068c4c8f4716d779fd40e
+Embedded source copyright: Public domain font. Share and enjoy.
+Noto asset retained unchanged:
+SHA256 2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b
+Noto licensing/source remain in fonts/LICENSE and fonts/NOTICE.txt.

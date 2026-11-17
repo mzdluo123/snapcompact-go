@@ -2,6 +2,12 @@ Snapcompact dependency notices
 
 Code is independently implemented. No Pig/owncode/CLI source is included.
 Noto font notices are in fonts/NOTICE.txt and fonts/LICENSE.
+Archive reference design: can1357/oh-my-pi, MIT; pinned reference and asset hashes
+are recorded in PROVENANCE.txt. Upstream MIT text is testdata/upstream/LICENSE.
+The embedded X.Org fixed 8x13 BDF declares:
+"Public domain font. Share and enjoy."
+It identifies Markus Kuhn's ucs-fonts 8x13.bdf revision 1.57 (2006-01-05).
+Noto is used instead of Silver; no Silver asset or license is redistributed.
 
 
 === golang/image@v0.48.0 ===

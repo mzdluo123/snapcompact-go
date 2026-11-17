@@ -40,23 +40,21 @@ Rust 渲染器内的 [测试模块](testdata/upstream/snapcompact_render_tests.r
 - 官方 `toolArgMaxChars=500` 限制每个 JSON 编码参数值，`toolCallMaxChars=2000` 再限制整段 `name=value` 调用。
   Go 的 `ArgumentRunes=500` 限制整份排序后的 canonical JSON，`CallRunes=2000` 独立限制 CallBody；这两个策略不能宣称等价。
 - 官方按 UTF-16 code unit 截断；Go 按 Unicode scalar 计量并避开组合簇及控制序列切口，返回原文半开区间。
-- 官方角色使用 `¶user/¶ai/¶call` 紧凑标记，合并相邻同角色消息与配对工具结果，并可丢弃标为 useless 的调用。
-  Go 保留独立来源记录与原有顺序，不采用语义有用性判断，关联由 CallID 保留。
-- 官方把换行折成 FULL BLOCK，把部分符号、emoji 和兼容字符折为 ASCII，并删除部分格式和组合字符。
-  Go 保留实际换行、显式代码/补丁/结构化输出和 Unicode；没有静默删除 emoji 后宣称完整覆盖。
-- Go 采用 Noto 比例字体、grapheme 分段和单列排版；官方 bitmap 按 scalar cell grid，可使用两列 doc 布局及 Silver fallback。
-- Go 不实现官方 sentence palette、dim marker、stretch、repeat 和 stopword dimming；字号不因预算自动缩小。
-- Go 超页数时明确返回 `Uncovered` 和错误；官方部分渲染与归档路径只保留容量或预算允许的内容。
-- 两者都有 64px 最后一页高度下限；具体 PNG 像素、字体度量、分页数量与调色板不保证一致。
+- 官方角色使用紧凑标记、合并相邻角色和配对结果。`ArchiveRenderer` 实现这些展示策略并增加 `[sN]` 可追溯来源标签；不执行语义有用性判断。
+- `ArchiveRenderer` 保留输入正文，图片网格把换行显示为 FULL BLOCK，不删除 emoji/组合字符；文本边缘保留原始换行与缩进。
+- `ArchiveRenderer` 使用 public-domain 8x13 与 OFL Noto Unicode fallback；不使用 Silver，因此 CJK 像素并非上游逐像素复制。
+- `ArchiveRenderer` 实现模型几何、首尾文字、HQ/LQ/HQ、最老密集中段淘汰、页数/字节/估算 token 限制。新省略范围与预处理省略分开报告。
+- 原 `Renderer` 仍使用 Noto 比例字体和单列布局，超页数返回 `Uncovered`；新归档接口不改变这些兼容行为。
+- 两条路径都不实现 sentence palette、dim marker、stretch、repeat、stopword dimming 或两列 doc 布局；图片最短高度 64px。
+- 固定 catalog 的模型估算与 verified 标记不是本模块付费模型实测；ACP detail 和宿主边长仍须由集成方确认。
 
 ## 排除与边界
 
 以下官方分组未作为 Go 核心的等价 API 移植；保留原测试以便后续集成阶段评估。
 
 - `computeFileLists`、`upsertFileOperations`、`isUrlSchemePath`：上游文件操作树和会话归档元数据，不属于本核心 DTO。
-- `shape resolution`、`new shape variants`：上游 provider/model catalog、模型费率与 eval-winning 几何；Go 接受调用方能力和计费注入。
-- `compact`、`archive helpers`、`frame data budget`：上游档案、文字边缘/图片中段选择、旧 summary 和投递状态；本任务仅生成与规划。
-- `dimStopwords`、`wrap`、`doc layout`：官方颜色、cell-grid 与双列策略；Go 的比例字体分页采用独立测试验证覆盖。
+- `shape resolution`、`archive helpers`、`frame data budget` 的核心策略由 `archive_*.go` 与 `archive_test.go` 实现；完整上游 catalog 解析器、旧 summary 与会话投递状态不属于此 API。
+- `dimStopwords`、`doc layout` 的颜色与双列策略不实现；grapheme-aware 网格是 Unicode 安全差异。
 - `data URL elision`：上游原生附件与 URL 自动省略策略；本核心接收调用方授权导出的文本，不引入额外附件内容判断。
 - `scanRenderability`、`render`、`renderMany`：适用的字形、PNG、边界语义已移植；依赖具体 Silver/bitmap cmap、颜色或 provider detail 的断言不声称相同。
 - agent/coding-agent/tui 下的 snapcompact 会话测试及研究目录模型评估：依赖其会话运行时、UI 或真实模型链路，不属于 provider-neutral 核心。

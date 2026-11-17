@@ -24,6 +24,39 @@ CGO_ENABLED=0 go test ./...
 3. 调用 `NewRenderer`，再用 `Render` 获取 PNG、尺寸、页序和覆盖范围。
 4. 由预算 API 检查目标能力及容量，调用方决定最终表示与投递。
 
+### 混合文字与图片归档
+
+`NewArchiveRenderer()` 返回 `ArchiveRenderer`；调用 `Compact(ctx, projection, ArchiveConfig)`。
+原有 `Project`、`Renderer.Render` 和 `Plan` API 保持不变；归档不重写 `Segment.Text`。
+`Project` 的正文包含旧 JSON 来源头；想使用紧凑正文的调用方须在创建归档投影前显式移除该头，并以新正文计算 projection rune 坐标。
+
+- `Model` 选择模型几何；OpenAI/Google 使用 `8on22-bw`，Claude 使用 `11on16-bw`，密集中段使用 `8on16-bw`。
+- 默认边长 1568px；Opus 4.7+、Fable/Mythos 为 1932px，Gemini 为 2048px；`MaxEdge` 为宿主边长上限，零不额外限制，可配置 64–4096。
+- `MaxPages` 默认 8，范围 1–80。短历史不生成图片。
+- `MaxImageTokens` 为额外图片估算 token 上限，零不限制；`MaxImageBytes` 默认 32 MiB，允许 1 字节到 128 MiB，限制保留 PNG 总字节数。
+- 默认首尾各保留一张 HQ 网格容量的文字。`MaxTextBytes>0` 限制两端合计 UTF-8 字节，包括角色和来源标记；最大 16 MiB，边界不切开 grapheme。
+- 输入正文与身份字段合计最多 8 MiB、最多 100000 条；序列化结果最多 16 MiB。在 PNG 编码前完成 cell 布局。取消返回错误，不把部分产物声明为成功。
+
+`Archive.TextHead`、图片、`Archive.TextTail` 按此顺序投递；`CurrentTask` 始终由调用方另行发送。
+`HistoryText` 是保留首部、图片中段和尾部的精确序列化审计文本，不含丢弃区段，也不含当前任务。
+序列化使用 `¶user/¶ai/¶call` 等角色标记，合并相邻角色；`[sN]` 对应输入 `Segments[N-1]`，配对工具结果用 `→sN` 引用调用，避免重复工具身份。
+完整 SourceID 仍在范围中；调用方应提供 ordinal 与 SourceID 对照或原文查询入口。正文空格、缩进和换行不被归档再次规范化。
+
+`TextRanges`、各页 `Ranges`、`Omitted` 必须完整且不重叠地分割所有 `Segment.Text` rune。
+`SourceRunes`、`RetainedRunes` 只计正文 rune，不计新增标记；原有有损预处理记录仍在 `Projection.Omissions`，不会混入归档预算省略。
+超页数时，中段采用 HQ/LQ/HQ，先丢弃最老的密集中段；字节和 token 限制也显式产生 `Omitted`，首尾文字不随图片预算丢弃。
+字节限制在有取消检查的 PNG writer 上执行；成功结果不会超过限制。失败返回 `Render.Uncovered`，输入硬限制拒绝时不分配整份范围。
+
+`ImageTokens` 与 `TokenBasis` 基于固定上游 catalog，属于估算，不是本次 provider 实测。
+`TokenEstimateKnown` 仅表示匹配已验证的 catalog lineage；未知模型用每图 6000 token 规划余量，不构成实际计费上限保证。
+GPT-6 Astra 的固定 catalog 明确使用 32px patch ×1.2，默认 auto=original；1568px 方图也低于 high 的 2500 patch 阈值。
+ACP 不能声明 detail:original；调用方必须确认真实模型、宿主缩放和 transport default，并通过 `MaxEdge` 传入已知宿主限制。
+较旧 Claude 的 1568-token catalog 上限可能触发 provider 缩放；不能把本地 PNG 尺寸当作模型实际输入尺寸。
+
+网格换行画为 FULL BLOCK；ASCII 使用 public-domain 8x13 bitmap，Unicode fallback 使用现有 OFL Noto 13px，按实际 glyph bounds 分配完整 cell。
+缺字在页数与 token 筛选后检查；文字边缘或该阶段明确省略区段的缺字不阻止归档。超高/超宽 grapheme 明确报错，不裁切后声称覆盖。
+`archive_test.go` 覆盖混合分区、首尾保留、填充边界、Unicode、缺字、预算及取消；不据此声称 OCR 或 token 节省效果。
+
 调用方仍须遵守既有 reasoning、敏感信息和不可导出状态边界。
 此 DTO 不提供存储或权限过滤，不应直接传入未经导出策略检查的原生文件。
 
