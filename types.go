@@ -80,3 +80,27 @@ type RenderResult struct {
 type Renderer interface {
 	Render(context.Context, Projection, RenderConfig) (RenderResult, error)
 }
+
+// ArchiveConfig selects model-aware archival layout. Zero limits use defaults,
+// except MaxImageTokens, whose zero value disables the additional token cap.
+type ArchiveConfig struct {
+	Model                                       string
+	MaxPages, MaxEdge                           int
+	MaxImageTokens, MaxImageBytes, MaxTextBytes int64
+}
+
+// Archive partitions every Segment.Text rune between TextRanges, page Ranges,
+// and Omitted. HistoryText is the exact serialized retained history, excluding
+// CurrentTask. Token estimates are not measurements of provider billing.
+type Archive struct {
+	TextHead, TextTail, HistoryText, Shape, TokenBasis string
+	Render                                             RenderResult
+	TextRanges, Omitted                                []Range
+	SourceRunes, RetainedRunes                         int
+	ImageTokens                                        int64
+	TokenEstimateKnown                                 bool
+}
+
+type ArchiveRenderer interface {
+	Compact(context.Context, Projection, ArchiveConfig) (Archive, error)
+}

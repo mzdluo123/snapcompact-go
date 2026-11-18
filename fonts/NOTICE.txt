@@ -7,3 +7,11 @@ HarfBuzz shaping. Chinese/ASCII and scalar glyph coverage are supported;
 complex-script shaping, emoji sequences, bidirectional layout, and precise
 combining-mark anchor positioning are not claimed. Missing scalar glyphs cause
 an explicit error with source IDs and codepoints rather than silent substitution.
+
+X.Org fixed 8x13 bitmap (8x13.bdf), unmodified.
+Source asset: oh-my-pi crates/pi-natives/src/fonts/8x13.bdf, local checkout.
+Original ucs-fonts revision 1.57 (2006-01-05), Markus Kuhn.
+Embedded copyright: "Public domain font. Share and enjoy."
+SHA256 c39b53bd625f35e6681d5097d81e6bf81b44a9f6730068c4c8f4716d779fd40e
+Archive rendering uses its literal 8x13 bitmap; unsupported bitmap clusters
+fall back to the existing Noto font at 13px with measured whole-cell bounds.

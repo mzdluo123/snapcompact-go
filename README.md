@@ -11,28 +11,22 @@ go test -run Example ./...
 go test -run '^$' -bench . -benchmem
 ```
 
-Use `Project(ctx, Input, DefaultPreprocessConfig())`, then `NewRenderer()` and
-`Render(ctx, projection, DefaultRenderConfig())`. See [examples](example_test.go).
-`Plan` checks independently configured text tokens, image tokens, image count,
-actual encoded request bytes and context capacity. Unknown stays unknown.
-This package does not send requests, parse agent files, or create forks.
+Use `CompactOMP(ctx, messages, options)` for oh-my-pi Snapcompact 18.22.2
+archives. It translates the OMP serializer, normalization, model-aware frame
+selection, pagination, and bitmap rendering into Go. `archive.Blocks()` yields
+ordered text and PNG frames. `archive.Summary` and `archive.HistoryText()` expose
+the reference summary and retained normalized transcript. The caller supplies
+the messages, model/API, and any history limits. Build, tests, and runtime use
+the Go toolchain.
 
-Inputs retain stable IDs, order, roles, tool correlations and status.
-Tool output, argument and call-body rune limits use deterministic head/tail
-retention. Source ranges refer to original runes; image ranges to projection
-text. CurrentTask stays separate and unchanged. Callers retain original text;
-whitespace normalization is lossy. Coverage does not prove model understanding.
+`Project`, `NewRenderer`, `Plan`, and `NewArchiveRenderer` remain available
+for callers that use source-addressable mechanical projections.
 
-Rendering embeds Noto CJK, uses grapheme wrapping and bounded pages/pixels/memory,
-and explicitly reports missing glyphs. Complex script shaping, bidi, emoji
-sequences and precise combining anchor placement are not verified.
-Production requires neither Node, Bun, Python nor a Rust executable.
-
-Independent Go code is [MIT licensed](LICENSE). The font uses [SIL OFL 1.1](fonts/LICENSE)
-with [fixed source notices](fonts/NOTICE.txt). [Dependency notices](THIRD_PARTY_NOTICES.txt)
-include BSD-3-Clause and MIT terms. Fixtures are synthetic, not user data.
-[Reference notes](REFERENCE.md) document fixed commits and comparison limits.
-No measured token savings, OCR accuracy or model task-success claims are made.
+The reference tests compare summary and transcript, text edges, frame order,
+image-token estimates, and decoded pixels. PNG encoding uses Go's standard
+library. [Provenance](PROVENANCE.txt) pins the upstream source and assets.
+[Dependency notices](THIRD_PARTY_NOTICES.txt) cover the upstream and bundled
+fonts. Fixtures are synthetic.
 
 The initial release exports WebMux's snapcompact package as a standalone module.
 

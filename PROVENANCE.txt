@@ -1,3 +1,37 @@
 Initial standalone export of WebMux snapcompact/ at 9662327fe3be0d1577d6d85a9194f072861d431f
 https://github.com/mzdluo123/webmux/pull/641
-Core Go sources, fixtures and fonts are identical; module path and standalone documentation differ.
+Initial export preserved core Go sources, fixtures and fonts; subsequent archive changes are listed below.
+
+Archive planner and geometry reference:
+can1357/oh-my-pi@7c49c11aa5bbaf3f418406583096168ad5b8c6dc
+packages/snapcompact/src/snapcompact.ts (planArchive, shape resolution)
+packages/catalog/src/compat/rules/classes/openai.kdl
+packages/catalog/src/compat/rules/classes/anthropic.kdl
+packages/catalog/src/compat/rules/classes/gemini.kdl
+packages/catalog/src/compat/rules/providers/image-tokenization.kdl
+packages/catalog/src/compat/image-tokenization.ts
+Independent Go implementation, not a claim of pixel equivalence or measured savings.
+
+8x13 asset imported from local oh-my-pi/crates/pi-natives/src/fonts/8x13.bdf.
+Local asset checkout revision was not established as the reference commit.
+SHA256 c39b53bd625f35e6681d5097d81e6bf81b44a9f6730068c4c8f4716d779fd40e
+Embedded source copyright: Public domain font. Share and enjoy.
+Noto asset retained unchanged:
+SHA256 2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b
+Noto licensing/source remain in fonts/LICENSE and fonts/NOTICE.txt.
+
+OMP archive API (CompactOMP)
+Reference: can1357/oh-my-pi@b96a1ed7a44072a72dd7fa5e7db1f2aa98785961
+https://github.com/can1357/oh-my-pi/tree/b96a1ed7a44072a72dd7fa5e7db1f2aa98785961/packages/snapcompact
+Distribution: @oh-my-pi/snapcompact@18.22.2
+The Go port covers the reference serializer, normalization, archive planning,
+model billing and image renderer. omp/catalog.json snapshots the 18.22.2
+bundled vision-model configuration and API defaults, deduplicated by policy.
+The 5x8, 6x12, 8x13, Unscii and Silver assets come from the pinned revision's
+crates/pi-natives/src/fonts directory. See omp/UPSTREAM-LICENSE and
+fonts/Silver.LICENSE. Silver outlines are rasterized with a Go translation of
+Fontdue 0.9.4 geometry and raster math. See omp/FONTDUE-LICENSE.
+testdata/omp-18.22.2.json.gz contains synthetic oracle inputs and outputs
+recorded from the official package, with SHA-256 of decoded RGB pixels.
+PNG compression and session-level message selection belong to the encoder
+and caller, respectively.

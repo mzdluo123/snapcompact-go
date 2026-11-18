@@ -1,6 +1,9 @@
 Snapcompact dependency notices
 
-Code is independently implemented. No Pig/owncode/CLI source is included.
+OMP archive and bitmap helpers are ported from can1357/oh-my-pi.
+Reference sources and assets are pinned in PROVENANCE.txt.
+See omp/UPSTREAM-LICENSE, omp/FONTDUE-LICENSE and fonts/Silver.LICENSE.
+The embedded X.Org fixed 5x8, 6x12 and 8x13 BDF assets declare public domain.
 Noto font notices are in fonts/NOTICE.txt and fonts/LICENSE.
 
 
