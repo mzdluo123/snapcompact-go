@@ -32,6 +32,6 @@ crates/pi-natives/src/fonts directory. See omp/UPSTREAM-LICENSE and
 fonts/Silver.LICENSE. Silver outlines are rasterized with a Go translation of
 Fontdue 0.9.4 geometry and raster math. See omp/FONTDUE-LICENSE.
 testdata/omp-18.22.2.json.gz contains synthetic oracle inputs and outputs
-recorded from the official package, with SHA-256 of decoded RGBA pixels.
+recorded from the official package, with SHA-256 of decoded RGB pixels.
 PNG compression and session-level message selection belong to the encoder
 and caller, respectively.

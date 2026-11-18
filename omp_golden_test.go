@@ -20,6 +20,8 @@ type ompGolden struct {
 	Archives []struct {
 		Name, Summary, Head, Tail, Text string
 		Messages                        []OMPMessage
+		Previous                        *OMPArchive
+		ImageTokens                     int64
 		FrameLimit, Chars, Truncated    int
 		All                             []struct{ Type, Text, Detail, Pixels string }
 	}
@@ -86,15 +88,16 @@ func TestOMPReferenceArchive(t *testing.T) {
 	for _, fixture := range ompGoldens(t).Archives {
 		t.Run(fixture.Name, func(t *testing.T) {
 			actual, err := CompactOMP(context.Background(), fixture.Messages, OMPOptions{
-				Target: OMPTargetForModel("openai-codex/gpt-6-astra"), MaxFrames: fixture.FrameLimit,
+				Target: OMPTargetForModel("openai-codex/gpt-6-astra"), MaxFrames: fixture.FrameLimit, Previous: fixture.Previous,
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
 			if actual.Summary != fixture.Summary || actual.Head != fixture.Head ||
 				actual.Tail != fixture.Tail || actual.Text != fixture.Text ||
-				actual.Characters != fixture.Chars || actual.Truncated != fixture.Truncated {
-				t.Fatalf("archive differs from upstream: characters=%d, truncated=%d", actual.Characters, actual.Truncated)
+				actual.Characters != fixture.Chars || actual.Truncated != fixture.Truncated || actual.ImageTokens != fixture.ImageTokens {
+				t.Fatalf("archive differs from upstream: characters=%d/%d, truncated=%d/%d, image tokens=%d/%d",
+					actual.Characters, fixture.Chars, actual.Truncated, fixture.Truncated, actual.ImageTokens, fixture.ImageTokens)
 			}
 			blocks := actual.Blocks()
 			if len(blocks) != len(fixture.All) {

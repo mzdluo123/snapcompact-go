@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -39,10 +40,10 @@ func CompactOMP(ctx context.Context, messages []OMPMessage, options OMPOptions) 
 	previous, truncated := ompPrevious(options)
 	hasDigest := previous == "" && options.PreviousSummary != ""
 	probe := serialized
-	if previous != "" {
-		probe = previous + "\n" + probe
-	} else if hasDigest {
-		probe = options.PreviousSummary + "\n" + probe
+	if options.Previous != nil && options.Previous.HistoryText() != "" {
+		probe = options.Previous.HistoryText() + string(ompNewline) + probe
+	} else if options.PreviousSummary != "" {
+		probe = options.PreviousSummary + string(ompNewline) + probe
 	}
 	profile := ompResolveProfile(options.Target)
 	shape, scan, err := ompShapeForText(probe, options.Target, profile, options.Variant)
@@ -111,24 +112,36 @@ func ompMaxFrames(options OMPOptions, shape OMPShape, p ompProfile) int {
 	return min(limit, p.MaxFrames, max(1, int(tokens/int64(frameTokens))), max(1, int(budget)/frameBytes))
 }
 
+func ompArchiveSource(a *OMPArchive) string {
+	if a.Text != "" {
+		return a.Text
+	}
+	return ompJoinEdges(a.Head, a.Tail)
+}
+
+func ompJoinEdges(head, tail string) string {
+	if head != "" && tail != "" {
+		return head + string(ompNewline) + tail
+	}
+	return head + tail
+}
+
 func ompPrevious(options OMPOptions) (string, int) {
 	prior := options.Previous
 	if prior == nil {
 		return "", 0
 	}
-	source := prior.Text
+	source := ompArchiveSource(prior)
 	elided := prior.Truncated
-	if source == "" {
-		parts := make([]string, 0, 2)
-		for _, text := range []string{prior.Head, prior.Tail} {
-			if text != "" {
-				parts = append(parts, text)
-			}
-		}
+	if prior.Text == "" {
 		for _, frame := range prior.Frames {
 			elided += frame.Characters
 		}
-		source = strings.Join(parts, string(ompNewline))
+		if !options.IncludeThinking {
+			start := ompFirstScope(prior.Tail)
+			elided += ompUTF16Len(prior.Tail[:start])
+			source = ompJoinEdges(prior.Head, prior.Tail[start:])
+		}
 	}
 	source = ompElideData(source, true)
 	if !options.IncludeThinking {
@@ -137,18 +150,27 @@ func ompPrevious(options OMPOptions) (string, int) {
 	return source, elided
 }
 
+var ompScope = regexp.MustCompile(`^¶(?:user|think|ai|call):`)
+var ompScopeLegend = regexp.MustCompile("`¶user:`, `¶think:`, (`¶ai:`, (?:and )?`¶call:`:? (?:open )?user, )assistant reasoning, ")
+
+func ompFirstScope(text string) int {
+	start := true
+	for i, r := range text {
+		if start && r == '¶' && ompScope.MatchString(text[i:]) {
+			return i
+		}
+		start = r == '\n' || r == ompNewline
+	}
+	return len(text)
+}
+
 func ompStripThinking(text string) string {
 	var out strings.Builder
 	dim, omit := false, false
 	start := true
 	for i, r := range text {
-		if start && !dim && r == '¶' {
-			for _, role := range []string{"user", "think", "ai", "call"} {
-				if strings.HasPrefix(text[i:], "¶"+role+":") {
-					omit = role == "think"
-					break
-				}
-			}
+		if start && !dim && r == '¶' && ompScope.MatchString(text[i:]) {
+			omit = strings.HasPrefix(text[i:], "¶think:")
 		}
 		if !omit {
 			out.WriteRune(r)
@@ -158,10 +180,11 @@ func ompStripThinking(text string) string {
 		}
 		start = r == '\n' || r == ompNewline
 	}
+	result := out.String()
 	if omit {
-		return strings.TrimRight(out.String(), "\n█")
+		result = strings.TrimRight(result, "\n"+string(ompNewline))
 	}
-	return out.String()
+	return ompScopeLegend.ReplaceAllString(result, "`¶user:`, ${1}")
 }
 
 func ompFinish(ctx context.Context, layout ompLayout, shape OMPShape, billing ompBilling, options OMPOptions, truncated int, hasDigest bool) (OMPArchive, error) {
@@ -263,7 +286,7 @@ func ompPlain(text string) string {
 }
 
 // HistoryText exposes the retained archive source for preview and readback.
-func (a OMPArchive) HistoryText() string { return ompPlain(a.Text) }
+func (a OMPArchive) HistoryText() string { return ompPlain(ompArchiveSource(&a)) }
 
 // Blocks exposes the chronological text and image blocks of the archive.
 func (a OMPArchive) Blocks() []OMPBlock {
